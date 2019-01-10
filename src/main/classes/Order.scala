@@ -1,6 +1,6 @@
 package main.classes
 import collection.mutable
-class Order(val name:String, val operation:Char, val stockName:Char, val priceStock:Int, var amountStock:Int) {
+class Order(val name:String, val operation:Char, val stockName:Char, var amountStock:Int, val priceStock:Int) {
 
 }
 

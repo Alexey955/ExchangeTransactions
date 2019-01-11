@@ -6,6 +6,7 @@ class ClientThread(val client: Client, val ordersBuffer:mutable.Buffer[Order],
                    clientsBuffer:mutable.Buffer[Client]) extends Thread(new Runnable {
 
   override def run(): Unit = {
+    println("Client - " + client.name)
     var order:Order = null
     val allOwnOrders = findAllOwnOrders(ordersBuffer)
     buySellOrdersBuffer.append(allOwnOrders.head)
@@ -51,22 +52,21 @@ class ClientThread(val client: Client, val ordersBuffer:mutable.Buffer[Order],
     }
     def buyOperation(order: Order): Unit = {
       while (true) {
-      for(i <- buySellOrdersBuffer.indices) {
-        var candidateToBuy = buySellOrdersBuffer(i)
+        for(i <- buySellOrdersBuffer.indices) {
+          var candidateToBuy = buySellOrdersBuffer(i)
 
+          if(!order.operation.equals(candidateToBuy.operation) && order.stockName.equals(candidateToBuy.stockName) &&
+            order.priceStock.compareTo(candidateToBuy.priceStock) == 1) {
 
-        if(!order.operation.equals(candidateToBuy.operation) && order.stockName.equals(candidateToBuy.stockName) &&
-          order.priceStock.compareTo(candidateToBuy.priceStock) == 1) {
+            println("Order: " + order.name + ", " + order.operation + ", " +
+              order.stockName + ", " + order.priceStock + ", " + order.amountStock)
 
-          println("Order: " + order.name + ", " + order.operation + ", " +
-            order.stockName + ", " + order.priceStock + ", " + order.amountStock)
+            println("Candidate: " + candidateToBuy.name + ", " + candidateToBuy.operation + ", " +
+              candidateToBuy.stockName + ", " + candidateToBuy.priceStock + ", " + candidateToBuy.amountStock + "\n")
 
-          println("Candidate: " + candidateToBuy.name + ", " + candidateToBuy.operation + ", " +
-            candidateToBuy.stockName + ", " + candidateToBuy.priceStock + ", " + candidateToBuy.amountStock + "\n")
-
-          return
+            return
+          }
         }
-      }
       }
     }
     def executeBuy(order: Order, orderId:Int, candidateToBuy: Order, candidateId:Int,
@@ -81,7 +81,6 @@ class ClientThread(val client: Client, val ordersBuffer:mutable.Buffer[Order],
         for(i <- clientsBuffer.indices) {
 
         }
-
       }
     }
 }){

@@ -3,44 +3,55 @@ package main.classes
 import scala.io.Source
 import collection.mutable
 object Application extends App{
-
+  var theMainCounter:Long = 0
   private val ordersPath = "d:ExchangeTransactions/orders.txt"
-//  val ordersAmount = Source.fromFile(ordersPath).getLines().size
   val seqOrder = Source.fromFile(ordersPath).getLines().toSeq
   val ordersBuffer = Order.createOrdersList(seqOrder)
-//  ordersBuffer.foreach(x => println(x.name + " " + x.operation + " " + x.stockName + " " + x.amountStock + " " + x.priceStock))
 
   private val clientsPath = "d:ExchangeTransactions/clients.txt"
-//  val clientsAmount = Source.fromFile(clientsPath).getLines().size
   val seqClients = Source.fromFile(clientsPath).getLines().toSeq
   val clientsBuffer = Client.createClients(seqClients)
-//  clientsBuffer.foreach(x => println(x.name + " " + x.money + " " + x.A + " " + x.B + " " + x.C + " " + x.D))
 
   val clientsWithOrdersBuffer = ClientWithOrdersBuffer.createClientsWithOrdersBuffer(ordersBuffer,clientsBuffer)
 
   val buySellOrdersBuffer:mutable.Buffer[Order] = mutable.Buffer()
 
-
   var reverseCounter = 1
   var numFrom = 5
   var numTo = 1
   var numMediator = 1
-//  for(i <- seqClients.indices) {
   var counter = 0
   var stopCounter = 0
   while (stopCounter != seqClients.size){
     for(j <- seqClients.indices) {
-//      if(i == 1) buySellOrdersBuffer.foreach(x => println(x.name + " " + x.operation + " " + x.stockName + " " + x.amountStock + " " + x.priceStock))
-      if(clientsWithOrdersBuffer(j).ownOrdersBuffer(counter) != null) {
+        if(counter < clientsWithOrdersBuffer(j).ownOrdersBuffer.size) {
         buySellOrdersBuffer.append(clientsWithOrdersBuffer(j).ownOrdersBuffer(counter))
       }else{
        stopCounter += 1
       }
+      /*if(stopCounter > 0) {
+        println(">0")
+      }
+      if(stopCounter > 1) {
+        println(">1")
+      }
+      if(stopCounter > 3) {
+        println(">3")
+      }
+      if(stopCounter > 7) {
+        println(">7")
+      }*/
     }
+    if(stopCounter != seqClients.size) {
+      stopCounter = 0
+    }
+
     if(stopCounter == seqClients.size) {
-      println("Final!!!")
+      println("WTF")
+      println("TheMainCounter = " + theMainCounter)
     }
-    stopCounter = 0
+
+
     counter += 1
 
     if(reverseCounter == 1) {
@@ -57,57 +68,46 @@ object Application extends App{
     for(j <- numFrom to (numTo, numMediator)) {
       var ownBuySellOrdersBuffer = buySellOrdersBuffer.filter(x => x.name == clientsWithOrdersBuffer(j).name)
       var clientId = j
-      //pickSellOrBuy
-//      for(k <- ownBuySellOrdersBuffer.indices) {
-//        if(ownBuySellOrdersBuffer(k).operation == 's') {
-//          sellOperation(ownBuySellOrdersBuffer(k), buySellOrdersBuffer, clientId)
-//        }else{
-//          //buy def
-//        }
-//      }
-      pickSellOrBuy(ownBuySellOrdersBuffer, clientId)
-      //Test
 
-      //Test
+      pickSellOrBuy(ownBuySellOrdersBuffer, clientId)
     }
+    var inttt = 10
   }
 
   def pickSellOrBuy(ownBuySellOrdersBuffer:mutable.Buffer[Order], clientId:Int): Unit = {
     for(k <- ownBuySellOrdersBuffer.indices) {
     if(ownBuySellOrdersBuffer(k).operation == 's') {
-//      sellOperation(ownBuySellOrdersBuffer(k), buySellOrdersBuffer, clientId)
-      //Test
-      if(sellOperation(ownBuySellOrdersBuffer(k), buySellOrdersBuffer, clientId)) {
+
+      sellOperation(ownBuySellOrdersBuffer(k), buySellOrdersBuffer, clientId)
+      if (k == ownBuySellOrdersBuffer.size - 1)
         return
-      }
-      //Test
+
     }else{
-//      buyOperation(ownBuySellOrdersBuffer(k), buySellOrdersBuffer, clientId)
-      //Test
-      if(buyOperation(ownBuySellOrdersBuffer(k), buySellOrdersBuffer, clientId)) {
+      buyOperation(ownBuySellOrdersBuffer(k), buySellOrdersBuffer, clientId)
+      if(k == ownBuySellOrdersBuffer.size - 1) {
         return
       }
-      //Test
     }
   }
 }
 
-  def buyOperation(order: Order, buySellOrdersBuffer:mutable.Buffer[Order], clientId:Int): Boolean = {
+  def buyOperation(order: Order, buySellOrdersBuffer:mutable.Buffer[Order], clientId:Int): Unit = {
     for(i <- buySellOrdersBuffer.indices) {
+
+      if(i >= buySellOrdersBuffer.size)
+        return
+
       var candidateOrder = buySellOrdersBuffer(i)
       if(!order.name.equals(candidateOrder.name) && !order.operation.equals(candidateOrder.operation) &&
         order.stockName.equals(candidateOrder.stockName) &&
         order.priceStock.compareTo(candidateOrder.priceStock) != -1) {
 
-        var candidateId = 0
-        if((candidateId = checkOwnMoney(clientsWithOrdersBuffer, clientId, order, candidateOrder)) != 0) {
+        var candidateId = checkOwnMoney(clientsWithOrdersBuffer, clientId, order, candidateOrder)
+        if(candidateId != 0) {
           buyStock(clientsWithOrdersBuffer, order, clientId, candidateOrder, candidateId)
-          return true
         }
-        //if candidate hasn't money
       }
     }
-    return true
   }
 
   def buyStock(clientsWithOrdersBuffer:mutable.Buffer[ClientWithOrdersBuffer], buyerOrder:Order, buyerId:Int,
@@ -115,11 +115,16 @@ object Application extends App{
 
     var candidate = clientsWithOrdersBuffer(candidateId)
     var buyer = clientsWithOrdersBuffer(buyerId)
-    for(i <- 1 until buyerOrder.amountStock) {
+    for(i <- 0 until buyerOrder.amountStock) {
       var amountToBuy = 0
       if(buyer.money < (candidateOrder.priceStock * i)) {
+        if(buyer.money < (candidateOrder.priceStock * 1)) {
+          return
+        }
+
         amountToBuy = i - 1
         changeWhenCantBuyAll(clientsWithOrdersBuffer(buyerId),buyerOrder,candidate,candidateOrder, amountToBuy)
+        return
       }
     }
     if(buyerOrder.amountStock == candidateOrder.amountStock){
@@ -137,6 +142,11 @@ object Application extends App{
     buyer.money -= candidateOrder.amountStock * candidateOrder.priceStock
     candidate.money += candidateOrder.amountStock * candidateOrder.priceStock
 
+    if(buyer.money < 0) {
+      println("<0MF")
+    }
+    theMainCounter += 1
+
     if(buyerOrder.stockName == 'A') {
       buyer.A += candidateOrder.amountStock
       candidate.A -= candidateOrder.amountStock
@@ -150,15 +160,12 @@ object Application extends App{
       buyer.D += candidateOrder.amountStock
       candidate.D -= candidateOrder.amountStock
     }
-    var returnCounter = 0
     buyerOrder.amountStock -= candidateOrder.amountStock
     for(i <- buySellOrdersBuffer.indices) {
       if(buySellOrdersBuffer(i) == candidateOrder){
         buySellOrdersBuffer.remove(i)
-        returnCounter += 1
-      }
-      if(returnCounter == 1)
         return
+      }
     }
   }
 
@@ -167,6 +174,11 @@ object Application extends App{
 
     buyer.money -= buyerOrder.amountStock * candidateOrder.priceStock
     candidate.money += buyerOrder.amountStock * candidateOrder.priceStock
+
+    if(buyer.money < 0) {
+      println("<0MF")
+    }
+    theMainCounter += 1
 
     if(buyerOrder.stockName == 'A') {
       buyer.A += buyerOrder.amountStock
@@ -181,15 +193,12 @@ object Application extends App{
       buyer.D += buyerOrder.amountStock
       candidate.D -= buyerOrder.amountStock
     }
-    var returnCounter = 0
     candidateOrder.amountStock -= buyerOrder.amountStock
     for(i <- buySellOrdersBuffer.indices) {
       if(buySellOrdersBuffer(i) == buyerOrder){
         buySellOrdersBuffer.remove(i)
-        returnCounter += 1
-      }
-      if(returnCounter == 1)
         return
+      }
     }
   }
 
@@ -199,31 +208,58 @@ object Application extends App{
     buyer.money -= candidateOrder.amountStock * candidateOrder.priceStock
     candidate.money += candidateOrder.amountStock * candidateOrder.priceStock
 
+    if(buyer.money < 0) {
+      println("<0MF")
+    }
+    theMainCounter += 1
+
     if(buyerOrder.stockName == 'A') {
       buyer.A += candidateOrder.amountStock
-      candidate.A += candidateOrder.amountStock
+      candidate.A -= candidateOrder.amountStock
     }else if(buyerOrder.stockName == 'B') {
       buyer.B += candidateOrder.amountStock
-      candidate.B += candidateOrder.amountStock
+      candidate.B -= candidateOrder.amountStock
     }else if(buyerOrder.stockName == 'C') {
       buyer.C += candidateOrder.amountStock
-      candidate.C += candidateOrder.amountStock
+      candidate.C -= candidateOrder.amountStock
     }else {
       buyer.D += candidateOrder.amountStock
-      candidate.D += candidateOrder.amountStock
+      candidate.D -= candidateOrder.amountStock
     }
     var returnCounter = 0
+    var oneId = 0
+    var twoId = 0
     for(i <- buySellOrdersBuffer.indices) {
       if(buySellOrdersBuffer(i) == buyerOrder){
-        buySellOrdersBuffer.remove(i)
+//        buySellOrdersBuffer.remove(i)
         returnCounter += 1
+        oneId = i
       }
-      if(buySellOrdersBuffer(i) == candidateOrder) {
-        buySellOrdersBuffer.remove(i)
-        returnCounter += 1
-      }
-      if(returnCounter == 2)
+      if(returnCounter == 2) {
+        if(oneId > twoId){
+          buySellOrdersBuffer.remove(twoId)
+          buySellOrdersBuffer.remove(oneId - 1)
+        }else{
+          buySellOrdersBuffer.remove(oneId)
+          buySellOrdersBuffer.remove(twoId - 1)
+        }
         return
+      }
+
+      if(buySellOrdersBuffer(i) == candidateOrder) {
+        returnCounter += 1
+        twoId = i
+      }
+      if(returnCounter == 2) {
+        if(oneId > twoId){
+          buySellOrdersBuffer.remove(twoId)
+          buySellOrdersBuffer.remove(oneId - 1)
+        }else{
+          buySellOrdersBuffer.remove(oneId)
+          buySellOrdersBuffer.remove(twoId - 1)
+        }
+        return
+      }
     }
   }
 
@@ -232,6 +268,11 @@ object Application extends App{
 
     buyer.money -= amountToBuy * candidateOrder.priceStock
     candidate.money += amountToBuy * candidateOrder.priceStock
+
+    if(buyer.money < 0) {
+      println("<0MF")
+    }
+    theMainCounter += 1
 
     if(buyerOrder.stockName == 'A') {
       buyer.A += amountToBuy
@@ -249,26 +290,26 @@ object Application extends App{
 
     buyerOrder.amountStock -= amountToBuy
     candidateOrder.amountStock -= amountToBuy
+
   }
 
-  def sellOperation(order: Order, buySellOrdersBuffer:mutable.Buffer[Order], sellerId:Int): Boolean = {
+  def sellOperation(order: Order, buySellOrdersBuffer:mutable.Buffer[Order], sellerId:Int): Unit = {
     for(i <- buySellOrdersBuffer.indices) {
+
+      if(i >= buySellOrdersBuffer.size)
+        return
+
       var candidateOrder = buySellOrdersBuffer(i)
       if(!order.name.equals(candidateOrder.name) && !order.operation.equals(candidateOrder.operation) &&
           order.stockName.equals(candidateOrder.stockName) &&
           order.priceStock.compareTo(candidateOrder.priceStock) != 1) {
 
-        var candidateId = 0
-        if((candidateId = checkMoneyCandidate(clientsWithOrdersBuffer, candidateOrder.name, candidateOrder, order)) != 0) {
-//          var candidateId = checkMoney(clientsWithOrdersBuffer, candidateOrder.name, candidateOrder, order)
+        var candidateId = checkMoneyCandidate(clientsWithOrdersBuffer, candidateOrder.name, candidateOrder, order)
+        if(candidateId != 0) {
           sellStock(clientsWithOrdersBuffer, order, sellerId, candidateOrder,candidateId)
-          return true
-//          println("SURPRISE")
         }
-        //if candidate hasn't money
       }
     }
-    return true
   }
 
   def checkMoneyCandidate(clientsWithOrdersBuffer:mutable.Buffer[ClientWithOrdersBuffer], candidateName:String,
@@ -277,9 +318,9 @@ object Application extends App{
     for(i <- clientsWithOrdersBuffer.indices) {
       if(clientsWithOrdersBuffer(i).name.equals(candidateName)) {
         if(clientsWithOrdersBuffer(i).money.compareTo(candidateOrder.priceStock) != -1) {
-          result = i
+          return i
         }else{
-          result = 0
+          return 0
         }
       }
     }
@@ -289,29 +330,52 @@ object Application extends App{
   def checkOwnMoney(clientsWithOrdersBuffer:mutable.Buffer[ClientWithOrdersBuffer], clientId:Int, order: Order,
                     candidateOrder:Order):Int = {
     var result = 0
-//    for(i <- clientsWithOrdersBuffer.indices) {
-//      if(clientsWithOrdersBuffer(i).name.equals(candidateName)) {
         if(clientsWithOrdersBuffer(clientId).money.compareTo(candidateOrder.priceStock) != -1) {
           result = clientId
         }else{
           result = 0
         }
-//      }
-//    }
     result
   }
 
   def sellStock(clientsWithOrdersBuffer:mutable.Buffer[ClientWithOrdersBuffer], sellerOrder:Order, sellerId:Int,
                 candidateOrder:Order, candidateId:Int): Unit = {
-
+    //Test
     var candidate = clientsWithOrdersBuffer(candidateId)
-    for(i <- 1 until sellerOrder.amountStock) {
+//    for(i <- 0 until sellerOrder.amountStock) {
+    var numFrom = 1
+    var numTo = sellerOrder.amountStock
+    var numMediator = 1
+      for(i <- numFrom to (numTo, numMediator)) {
       var amountToSell = 0
       if(candidate.money < (candidateOrder.priceStock * i)) {
-          amountToSell = i - 1
-          changeWhenCantSellAll(clientsWithOrdersBuffer(sellerId),sellerOrder,candidate,candidateOrder, amountToSell)
+        if(candidate.money < (candidateOrder.priceStock * 1)) {
+          return
+        }
+
+        amountToSell = i - 1
+        changeWhenCantSellAll(clientsWithOrdersBuffer(sellerId),sellerOrder,candidate,candidateOrder, amountToSell)
+        return
       }
     }
+    //Test
+//    var candidate = clientsWithOrdersBuffer(candidateId)
+//    for(i <- 1 until sellerOrder.amountStock) {
+//      var amountToSell = 0
+//      if(candidate.money < (candidateOrder.priceStock * i)) {
+//        if(candidate.money < (candidateOrder.priceStock * 1)){
+//          return
+//        }
+//          amountToSell = i - 1
+//          changeWhenCantSellAll(clientsWithOrdersBuffer(sellerId),sellerOrder,candidate,candidateOrder, amountToSell)
+//        return
+//      }
+//    }
+    //Test
+    if(candidate.money < (candidateOrder.priceStock * 1)) {
+      println("<MF")
+    }
+    //Test
     if(sellerOrder.amountStock == candidateOrder.amountStock){
       sellWhenStockEqual(clientsWithOrdersBuffer(sellerId),sellerOrder,candidate,candidateOrder)
     }else if(sellerOrder.amountStock < candidateOrder.amountStock){
@@ -326,6 +390,11 @@ object Application extends App{
 
     seller.money += candidateOrder.amountStock * candidateOrder.priceStock
     candidate.money -= candidateOrder.amountStock * candidateOrder.priceStock
+
+    if(candidate.money < 0) {
+      println("<0MF")
+    }
+    theMainCounter += 1
 
     if(sellerOrder.stockName == 'A') {
       seller.A -= candidateOrder.amountStock
@@ -358,6 +427,11 @@ object Application extends App{
     seller.money += sellerOrder.amountStock * candidateOrder.priceStock
     candidate.money -= sellerOrder.amountStock * candidateOrder.priceStock
 
+    if(candidate.money < 0) {
+      println("<0MF")
+    }
+    theMainCounter += 1
+
     if(sellerOrder.stockName == 'A') {
       seller.A -= sellerOrder.amountStock
       candidate.A += sellerOrder.amountStock
@@ -389,6 +463,11 @@ object Application extends App{
     seller.money += amountToSell * candidateOrder.priceStock
     candidate.money -= amountToSell * candidateOrder.priceStock
 
+    if(candidate.money < 0) {
+      println("<0MF")
+    }
+    theMainCounter += 1
+
     if(sellerOrder.stockName == 'A') {
       seller.A -= amountToSell
       candidate.A += amountToSell
@@ -413,6 +492,11 @@ object Application extends App{
     seller.money += candidateOrder.amountStock * candidateOrder.priceStock
     candidate.money -= candidateOrder.amountStock * candidateOrder.priceStock
 
+    if(candidate.money < 0) {
+      println("<0MF")
+    }
+    theMainCounter += 1
+
     if(sellerOrder.stockName == 'A') {
       seller.A -= candidateOrder.amountStock
       candidate.A += candidateOrder.amountStock
@@ -427,22 +511,41 @@ object Application extends App{
       candidate.D += candidateOrder.amountStock
     }
     var returnCounter = 0
+    var oneId = 0
+    var twoId = 0
     for(i <- buySellOrdersBuffer.indices) {
+
       if(buySellOrdersBuffer(i) == sellerOrder){
-        buySellOrdersBuffer.remove(i)
         returnCounter += 1
+        oneId = i
       }
-      if(buySellOrdersBuffer(i) == candidateOrder) {
-        buySellOrdersBuffer.remove(i)
-        returnCounter += 1
-      }
-      if(returnCounter == 2)
+      if(returnCounter == 2) {
+        if(oneId > twoId){
+          buySellOrdersBuffer.remove(twoId)
+          buySellOrdersBuffer.remove(oneId - 1)
+        }else{
+          buySellOrdersBuffer.remove(oneId)
+          buySellOrdersBuffer.remove(twoId - 1)
+        }
         return
+      }
+
+      if(buySellOrdersBuffer(i) == candidateOrder) {
+        returnCounter += 1
+        twoId = i
+      }
+      if(returnCounter == 2) {
+        if(oneId > twoId){
+          buySellOrdersBuffer.remove(twoId)
+          buySellOrdersBuffer.remove(oneId - 1)
+        }else{
+          buySellOrdersBuffer.remove(oneId)
+          buySellOrdersBuffer.remove(twoId - 1)
+        }
+        return
+      }
     }
   }
 
-
   println("End\n")
-//  Source.fromFile("d:ExchangeTransactions/orders.txt").getLines().foreach(println)
-
 }

@@ -93,7 +93,7 @@ object Application extends App{
 
   def buyOperation(order: Order, buySellOrdersBuffer:mutable.Buffer[Order], clientId:Int): Unit = {
     for(i <- buySellOrdersBuffer.indices) {
-
+      theMainCounter += 1
       if(i >= buySellOrdersBuffer.size)
         return
 
@@ -139,6 +139,33 @@ object Application extends App{
   def changeIfWantBuyMore(buyer:ClientWithOrdersBuffer, buyerOrder:Order,
                            candidate:ClientWithOrdersBuffer, candidateOrder:Order): Unit = {
 
+    var amountToBuy = candidateOrder.amountStock
+    if(candidateOrder.stockName == 'A') {
+      if(candidate.A < amountToBuy) {
+        amountToBuy = candidate.A
+        changeWhenCantBuyAll(buyer,buyerOrder,candidate,candidateOrder, amountToBuy)
+        return
+      }
+    }else if(candidateOrder.stockName == 'B') {
+      if(candidate.B < amountToBuy) {
+        amountToBuy = candidate.B
+        changeWhenCantBuyAll(buyer,buyerOrder,candidate,candidateOrder, amountToBuy)
+        return
+      }
+    }else if(candidateOrder.stockName == 'C') {
+      if(candidate.C < amountToBuy) {
+        amountToBuy = candidate.C
+        changeWhenCantBuyAll(buyer,buyerOrder,candidate,candidateOrder, amountToBuy)
+        return
+      }
+    }else {
+      if(candidate.D < amountToBuy) {
+        amountToBuy = candidate.D
+        changeWhenCantBuyAll(buyer,buyerOrder,candidate,candidateOrder, amountToBuy)
+        return
+      }
+    }
+
     buyer.money -= candidateOrder.amountStock * candidateOrder.priceStock
     candidate.money += candidateOrder.amountStock * candidateOrder.priceStock
 
@@ -172,6 +199,33 @@ object Application extends App{
   def changeIfWantBuyLess(buyer:ClientWithOrdersBuffer, buyerOrder:Order,
                            candidate:ClientWithOrdersBuffer, candidateOrder:Order): Unit = {
 
+    var amountToBuy = candidateOrder.amountStock
+    if(candidateOrder.stockName == 'A') {
+      if(candidate.A < amountToBuy) {
+        amountToBuy = candidate.A
+        changeWhenCantBuyAll(buyer,buyerOrder,candidate,candidateOrder, amountToBuy)
+        return
+      }
+    }else if(candidateOrder.stockName == 'B') {
+      if(candidate.B < amountToBuy) {
+        amountToBuy = candidate.B
+        changeWhenCantBuyAll(buyer,buyerOrder,candidate,candidateOrder, amountToBuy)
+        return
+      }
+    }else if(candidateOrder.stockName == 'C') {
+      if(candidate.C < amountToBuy) {
+        amountToBuy = candidate.C
+        changeWhenCantBuyAll(buyer,buyerOrder,candidate,candidateOrder, amountToBuy)
+        return
+      }
+    }else {
+      if(candidate.D < amountToBuy) {
+        amountToBuy = candidate.D
+        changeWhenCantBuyAll(buyer,buyerOrder,candidate,candidateOrder, amountToBuy)
+        return
+      }
+    }
+
     buyer.money -= buyerOrder.amountStock * candidateOrder.priceStock
     candidate.money += buyerOrder.amountStock * candidateOrder.priceStock
 
@@ -204,6 +258,34 @@ object Application extends App{
 
   def buyWhenStockEqual(buyer:ClientWithOrdersBuffer, buyerOrder:Order,
                            candidate:ClientWithOrdersBuffer, candidateOrder:Order): Unit = {
+
+    //Check amount stock
+    var amountToBuy = candidateOrder.amountStock
+    if(candidateOrder.stockName == 'A') {
+      if(candidate.A < amountToBuy) {
+        amountToBuy = candidate.A
+        changeWhenCantBuyAll(buyer,buyerOrder,candidate,candidateOrder, amountToBuy)
+        return
+      }
+    }else if(candidateOrder.stockName == 'B') {
+      if(candidate.B < amountToBuy) {
+        amountToBuy = candidate.B
+        changeWhenCantBuyAll(buyer,buyerOrder,candidate,candidateOrder, amountToBuy)
+        return
+      }
+    }else if(candidateOrder.stockName == 'C') {
+      if(candidate.C < amountToBuy) {
+        amountToBuy = candidate.C
+        changeWhenCantBuyAll(buyer,buyerOrder,candidate,candidateOrder, amountToBuy)
+        return
+      }
+    }else {
+      if(candidate.D < amountToBuy) {
+        amountToBuy = candidate.D
+        changeWhenCantBuyAll(buyer,buyerOrder,candidate,candidateOrder, amountToBuy)
+        return
+      }
+    }
 
     buyer.money -= candidateOrder.amountStock * candidateOrder.priceStock
     candidate.money += candidateOrder.amountStock * candidateOrder.priceStock
@@ -266,8 +348,28 @@ object Application extends App{
   def changeWhenCantBuyAll(buyer:ClientWithOrdersBuffer, buyerOrder:Order,
                            candidate:ClientWithOrdersBuffer, candidateOrder:Order, amountToBuy:Int): Unit = {
 
-    buyer.money -= amountToBuy * candidateOrder.priceStock
-    candidate.money += amountToBuy * candidateOrder.priceStock
+    //Check amount stock
+    var thisAmountToBuy = amountToBuy
+    if(candidateOrder.stockName == 'A') {
+      if(candidate.A < amountToBuy) {
+        thisAmountToBuy = candidate.A
+      }
+    }else if(candidateOrder.stockName == 'B') {
+      if(candidate.B < amountToBuy) {
+        thisAmountToBuy = candidate.B
+      }
+    }else if(candidateOrder.stockName == 'C') {
+      if(candidate.C < amountToBuy) {
+        thisAmountToBuy = candidate.C
+      }
+    }else {
+      if(candidate.D < amountToBuy) {
+        thisAmountToBuy = candidate.D
+      }
+    }
+
+    buyer.money -= thisAmountToBuy * candidateOrder.priceStock
+    candidate.money += thisAmountToBuy * candidateOrder.priceStock
 
     if(buyer.money < 0) {
       println("<0MF")
@@ -275,27 +377,27 @@ object Application extends App{
     theMainCounter += 1
 
     if(buyerOrder.stockName == 'A') {
-      buyer.A += amountToBuy
-      candidate.A -= amountToBuy
+      buyer.A += thisAmountToBuy
+      candidate.A -= thisAmountToBuy
     }else if(buyerOrder.stockName == 'B') {
-      buyer.B += amountToBuy
-      candidate.B -= amountToBuy
+      buyer.B += thisAmountToBuy
+      candidate.B -= thisAmountToBuy
     }else if(buyerOrder.stockName == 'C') {
-      buyer.C += amountToBuy
-      candidate.C -= amountToBuy
+      buyer.C += thisAmountToBuy
+      candidate.C -= thisAmountToBuy
     }else {
-      buyer.D += amountToBuy
-      candidate.D -= amountToBuy
+      buyer.D += thisAmountToBuy
+      candidate.D -= thisAmountToBuy
     }
 
-    buyerOrder.amountStock -= amountToBuy
-    candidateOrder.amountStock -= amountToBuy
+    buyerOrder.amountStock -= thisAmountToBuy
+    candidateOrder.amountStock -= thisAmountToBuy
 
   }
 
   def sellOperation(order: Order, buySellOrdersBuffer:mutable.Buffer[Order], sellerId:Int): Unit = {
     for(i <- buySellOrdersBuffer.indices) {
-
+      theMainCounter += 1
       if(i >= buySellOrdersBuffer.size)
         return
 
@@ -388,6 +490,33 @@ object Application extends App{
   def changeIfWantSellMore(seller:ClientWithOrdersBuffer, sellerOrder:Order,
                            candidate:ClientWithOrdersBuffer, candidateOrder:Order): Unit = {
 
+    var amountToSell = sellerOrder.amountStock
+    if(sellerOrder.stockName == 'A') {
+      if(seller.A < amountToSell) {
+        amountToSell = seller.A
+        changeWhenCantSellAll(seller,sellerOrder,candidate,candidateOrder, amountToSell)
+        return
+      }
+    }else if(sellerOrder.stockName == 'B') {
+      if(seller.B < amountToSell) {
+        amountToSell = seller.B
+        changeWhenCantSellAll(seller,sellerOrder,candidate,candidateOrder, amountToSell)
+        return
+      }
+    }else if(sellerOrder.stockName == 'C') {
+      if(seller.C < amountToSell) {
+        amountToSell = seller.C
+        changeWhenCantSellAll(seller,sellerOrder,candidate,candidateOrder, amountToSell)
+        return
+      }
+    }else {
+      if(seller.D < amountToSell) {
+        amountToSell = seller.D
+        changeWhenCantSellAll(seller,sellerOrder,candidate,candidateOrder, amountToSell)
+        return
+      }
+    }
+
     seller.money += candidateOrder.amountStock * candidateOrder.priceStock
     candidate.money -= candidateOrder.amountStock * candidateOrder.priceStock
 
@@ -423,6 +552,33 @@ object Application extends App{
 
   def changeIfWantSellLess(seller:ClientWithOrdersBuffer, sellerOrder:Order,
                            candidate:ClientWithOrdersBuffer, candidateOrder:Order): Unit = {
+
+    var amountToSell = sellerOrder.amountStock
+    if(sellerOrder.stockName == 'A') {
+      if(seller.A < amountToSell) {
+        amountToSell = seller.A
+        changeWhenCantSellAll(seller,sellerOrder,candidate,candidateOrder, amountToSell)
+        return
+      }
+    }else if(sellerOrder.stockName == 'B') {
+      if(seller.B < amountToSell) {
+        amountToSell = seller.B
+        changeWhenCantSellAll(seller,sellerOrder,candidate,candidateOrder, amountToSell)
+        return
+      }
+    }else if(sellerOrder.stockName == 'C') {
+      if(seller.C < amountToSell) {
+        amountToSell = seller.C
+        changeWhenCantSellAll(seller,sellerOrder,candidate,candidateOrder, amountToSell)
+        return
+      }
+    }else {
+      if(seller.D < amountToSell) {
+        amountToSell = seller.D
+        changeWhenCantSellAll(seller,sellerOrder,candidate,candidateOrder, amountToSell)
+        return
+      }
+    }
 
     seller.money += sellerOrder.amountStock * candidateOrder.priceStock
     candidate.money -= sellerOrder.amountStock * candidateOrder.priceStock
@@ -460,8 +616,27 @@ object Application extends App{
   def changeWhenCantSellAll(seller:ClientWithOrdersBuffer, sellerOrder:Order,
                            candidate:ClientWithOrdersBuffer, candidateOrder:Order, amountToSell:Int): Unit = {
 
-    seller.money += amountToSell * candidateOrder.priceStock
-    candidate.money -= amountToSell * candidateOrder.priceStock
+    var thisAmountToSell = amountToSell
+    if(candidateOrder.stockName == 'A') {
+      if(seller.A < amountToSell) {
+        thisAmountToSell = seller.A
+      }
+    }else if(candidateOrder.stockName == 'B') {
+      if(seller.B < amountToSell) {
+        thisAmountToSell = seller.B
+      }
+    }else if(candidateOrder.stockName == 'C') {
+      if(seller.C < amountToSell) {
+        thisAmountToSell = seller.C
+      }
+    }else {
+      if(seller.D < amountToSell) {
+        thisAmountToSell = seller.D
+      }
+    }
+
+    seller.money += thisAmountToSell * candidateOrder.priceStock
+    candidate.money -= thisAmountToSell * candidateOrder.priceStock
 
     if(candidate.money < 0) {
       println("<0MF")
@@ -469,25 +644,52 @@ object Application extends App{
     theMainCounter += 1
 
     if(sellerOrder.stockName == 'A') {
-      seller.A -= amountToSell
-      candidate.A += amountToSell
+      seller.A -= thisAmountToSell
+      candidate.A += thisAmountToSell
     }else if(sellerOrder.stockName == 'B') {
-      seller.B -= amountToSell
-      candidate.B += amountToSell
+      seller.B -= thisAmountToSell
+      candidate.B += thisAmountToSell
     }else if(sellerOrder.stockName == 'C') {
-      seller.C -= amountToSell
-      candidate.C += amountToSell
+      seller.C -= thisAmountToSell
+      candidate.C += thisAmountToSell
     }else {
-      seller.D -= amountToSell
-      candidate.D += amountToSell
+      seller.D -= thisAmountToSell
+      candidate.D += thisAmountToSell
     }
 
-    sellerOrder.amountStock -= amountToSell
-    candidateOrder.amountStock -= amountToSell
+    sellerOrder.amountStock -= thisAmountToSell
+    candidateOrder.amountStock -= thisAmountToSell
   }
 
   def sellWhenStockEqual(seller:ClientWithOrdersBuffer, sellerOrder:Order,
                            candidate:ClientWithOrdersBuffer, candidateOrder:Order): Unit = {
+
+    var amountToSell = sellerOrder.amountStock
+    if(sellerOrder.stockName == 'A') {
+      if(seller.A < amountToSell) {
+        amountToSell = seller.A
+        changeWhenCantSellAll(seller,sellerOrder,candidate,candidateOrder, amountToSell)
+        return
+      }
+    }else if(sellerOrder.stockName == 'B') {
+      if(seller.B < amountToSell) {
+        amountToSell = seller.B
+        changeWhenCantSellAll(seller,sellerOrder,candidate,candidateOrder, amountToSell)
+        return
+      }
+    }else if(sellerOrder.stockName == 'C') {
+      if(seller.C < amountToSell) {
+        amountToSell = seller.C
+        changeWhenCantSellAll(seller,sellerOrder,candidate,candidateOrder, amountToSell)
+        return
+      }
+    }else {
+      if(seller.D < amountToSell) {
+        amountToSell = seller.D
+        changeWhenCantSellAll(seller,sellerOrder,candidate,candidateOrder, amountToSell)
+        return
+      }
+    }
 
     seller.money += candidateOrder.amountStock * candidateOrder.priceStock
     candidate.money -= candidateOrder.amountStock * candidateOrder.priceStock

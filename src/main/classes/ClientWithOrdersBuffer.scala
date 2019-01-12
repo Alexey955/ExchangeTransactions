@@ -8,13 +8,16 @@ class ClientWithOrdersBuffer(var client: Client, var ownOrdersBuffer:mutable.Buf
 }
 
 object ClientWithOrdersBuffer{
+
   def createClientsWithOrdersBuffer(ordersBuffer:mutable.Buffer[Order],
                                     clientsBuffer:mutable.Buffer[Client]):mutable.Buffer[ClientWithOrdersBuffer] = {
 
     val clientsWithOrdersBuffer:mutable.Buffer[ClientWithOrdersBuffer] = mutable.Buffer()
+
     for(i <- clientsBuffer.indices) {
       var ownOrdersBuffer = createOwnOrderBuffer(clientsBuffer(i), ordersBuffer)
       var clientsWithOrders = new ClientWithOrdersBuffer(clientsBuffer(i), ownOrdersBuffer)
+
       clientsWithOrdersBuffer.append(clientsWithOrders)
     }
     clientsWithOrdersBuffer
@@ -23,6 +26,7 @@ object ClientWithOrdersBuffer{
   def createOwnOrderBuffer(client: Client, ordersBuffer:mutable.Buffer[Order]):mutable.Buffer[Order] = {
 
     val ownOrdersBuffer:mutable.Buffer[Order] = mutable.Buffer()
+
     for(i <- ordersBuffer.indices) {
       if(client.name.equals(ordersBuffer(i).name))
         ownOrdersBuffer.append(ordersBuffer(i))

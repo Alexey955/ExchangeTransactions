@@ -23,14 +23,17 @@ object Application extends App{
   var numMediator = 1
   var counter = 0
   var stopCounter = 0
+
   while (stopCounter != seqClients.size){
+
     for(j <- seqClients.indices) {
-        if(counter < clientsWithOrdersBuffer(j).ownOrdersBuffer.size) {
+      if(counter < clientsWithOrdersBuffer(j).ownOrdersBuffer.size) {
         buySellOrdersBuffer.append(clientsWithOrdersBuffer(j).ownOrdersBuffer(counter))
       }else{
        stopCounter += 1
       }
     }
+
     if(stopCounter != seqClients.size) {
       stopCounter = 0
     }
@@ -39,7 +42,6 @@ object Application extends App{
       println("STOP")
       println("TheMainCounter = " + theMainCounter)
     }
-
 
     counter += 1
 
@@ -54,50 +56,57 @@ object Application extends App{
       numMediator = -1
       reverseCounter = 1
     }
+
     for(j <- numFrom to (numTo, numMediator)) {
-      var ownBuySellOrdersBuffer = buySellOrdersBuffer.filter(x => x.name == clientsWithOrdersBuffer(j).name)
-      var client = clientsWithOrdersBuffer(j)
+      val ownBuySellOrdersBuffer = buySellOrdersBuffer.filter(x => x.name == clientsWithOrdersBuffer(j).name)
+      val client = clientsWithOrdersBuffer(j)
 
       pickSellOrBuy(ownBuySellOrdersBuffer, client)
     }
   }
 
   def pickSellOrBuy(ownBuySellOrdersBuffer:mutable.Buffer[Order], client:ClientWithOrdersBuffer): Unit = {
+
     for(k <- ownBuySellOrdersBuffer.indices) {
-    if(ownBuySellOrdersBuffer(k).operation == 's') {
 
-      var stockName:String = ownBuySellOrdersBuffer(k).stockName.toString
-      stockName match {
-        case "A" if client.A == 0 => return
-        case "B" if client.B == 0 => return
-        case "C" if client.C == 0 => return
-        case "D" if client.D == 0 => return
-        case _ =>
-      }
-      if(!sellOperation(ownBuySellOrdersBuffer(k), buySellOrdersBuffer, client))
-        return
-      if (k == ownBuySellOrdersBuffer.size - 1)
-        return
+      if(ownBuySellOrdersBuffer(k).operation == 's') {
 
-    }else{
-      if(client.money == 0)
-        return
-      if(!buyOperation(ownBuySellOrdersBuffer(k), buySellOrdersBuffer, client))
-        return
-      if(k == ownBuySellOrdersBuffer.size - 1) {
-        return
+        val stockName: String = ownBuySellOrdersBuffer(k).stockName.toString
+        stockName match {
+          case "A" if client.A == 0 => return
+          case "B" if client.B == 0 => return
+          case "C" if client.C == 0 => return
+          case "D" if client.D == 0 => return
+          case _ =>
+        }
+
+        if(!sellOperation(ownBuySellOrdersBuffer(k), buySellOrdersBuffer, client))
+          return
+        if (k == ownBuySellOrdersBuffer.size - 1)
+          return
+
+      } else{
+        if(client.money == 0)
+          return
+        if(!buyOperation(ownBuySellOrdersBuffer(k), buySellOrdersBuffer, client))
+          return
+        if(k == ownBuySellOrdersBuffer.size - 1) {
+          return
+        }
       }
-    }
   }
 }
 
   def buyOperation(order: Order, buySellOrdersBuffer:mutable.Buffer[Order], client:ClientWithOrdersBuffer): Boolean = {
+
     for(i <- buySellOrdersBuffer.indices) {
+
       theMainCounter += 1
+
       if(i >= buySellOrdersBuffer.size)
         return false
 
-      var candidateOrder = buySellOrdersBuffer(i)
+      val candidateOrder = buySellOrdersBuffer(i)
       if(!order.name.equals(candidateOrder.name) && !order.operation.equals(candidateOrder.operation) &&
         order.stockName.equals(candidateOrder.stockName) &&
         order.priceStock.compareTo(candidateOrder.priceStock) != -1) {
@@ -107,31 +116,14 @@ object Application extends App{
           if(candidateOrder.name.equals(clientsWithOrdersBuffer(j).name))
             candidate = clientsWithOrdersBuffer(j)
         }
-       return switchWhenBuy(client, order, candidate, candidateOrder)
+        return switchWhenBuy(client, order, candidate, candidateOrder)
       }
     }
     false
   }
 
-  def changeIfWantBuyMore(buyer:ClientWithOrdersBuffer, buyerOrder:Order, candidate:ClientWithOrdersBuffer,
-                          candidateOrder:Order, amountStock:Int): Boolean = {
-
-    buyer.money -= amountStock * candidateOrder.priceStock
-    candidate.money += amountStock * candidateOrder.priceStock
-
-    if(buyer.money < 0) {
-      println("<0MF")
-    }
-    theMainCounter += 1
-
-    changeAmountStock(candidate, buyer, buyerOrder.stockName, amountStock)
-
-    changeAndDeleteOrders(buyerOrder, amountStock, candidateOrder)
-
-    true
-  }
-
   def changeAndDeleteOrders(orderToChange:Order, amountStock:Int, orderToDelete:Order): Unit = {
+
     orderToChange.amountStock -= amountStock
     for(i <- buySellOrdersBuffer.indices) {
       if(buySellOrdersBuffer(i) == orderToDelete){
@@ -141,51 +133,12 @@ object Application extends App{
     }
   }
 
-  def changeIfWantBuyLess(buyer:ClientWithOrdersBuffer, buyerOrder:Order, candidate:ClientWithOrdersBuffer,
-                          candidateOrder:Order, amountStock:Int): Boolean = {
-
-    buyer.money -= amountStock * candidateOrder.priceStock
-    candidate.money += amountStock * candidateOrder.priceStock
-
-    if(buyer.money < 0) {
-      println("<0MF")
-    }
-    theMainCounter += 1
-
-    changeAmountStock(candidate, buyer, buyerOrder.stockName, amountStock)
-
-    candidateOrder.amountStock -= amountStock
-    for(i <- buySellOrdersBuffer.indices) {
-      if(buySellOrdersBuffer(i) == buyerOrder){
-        buySellOrdersBuffer.remove(i)
-        return false
-      }
-    }
-    false
-  }
-
-  def buyWhenStockEqual(buyer:ClientWithOrdersBuffer, buyerOrder:Order,
-                           candidate:ClientWithOrdersBuffer, candidateOrder:Order): Boolean = {
-
-    buyer.money -= candidateOrder.amountStock * candidateOrder.priceStock
-    candidate.money += candidateOrder.amountStock * candidateOrder.priceStock
-
-    if(buyer.money < 0) {
-      println("<0MF")
-    }
-    theMainCounter += 1
-
-    changeAmountStock(candidate, buyer, buyerOrder.stockName, buyerOrder.amountStock)
-
-    deleteTwoOrders(buyerOrder, candidateOrder)
-
-    false
-  }
-
   def deleteTwoOrders(orderToDeleteOne:Order, orderToDeleteTwo:Order): Unit ={
+
     var returnCounter = 0
     var oneId = 0
     var twoId = 0
+
     for(i <- buySellOrdersBuffer.indices) {
       if(buySellOrdersBuffer(i) == orderToDeleteOne){
         returnCounter += 1
@@ -219,201 +172,157 @@ object Application extends App{
     }
   }
 
-  def changeWhenCantBuyAll(buyer:ClientWithOrdersBuffer, buyerOrder:Order,
-                           candidate:ClientWithOrdersBuffer, candidateOrder:Order, amountToBuy:Int): Boolean = {
+  def deleteZeroOrOneOrTwoOrdersWhenBuy(buyer:ClientWithOrdersBuffer, buyerOrder:Order, candidate:ClientWithOrdersBuffer,
+                                        candidateOrder:Order, amountStock:Int, numberOfAction:Int): Boolean = {
 
-    buyer.money -= amountToBuy * candidateOrder.priceStock
-    candidate.money += amountToBuy * candidateOrder.priceStock
+    buyer.money -= amountStock * candidateOrder.priceStock
+    candidate.money += amountStock * candidateOrder.priceStock
 
-    if(buyer.money < 0) {
-      println("<0MF")
-    }
     theMainCounter += 1
 
-    changeAmountStock(candidate, buyer, buyerOrder.stockName, amountToBuy)
+    changeAmountStock(candidate, buyer, buyerOrder.stockName, amountStock)
 
-    buyerOrder.amountStock -= amountToBuy
-    candidateOrder.amountStock -= amountToBuy
-
-    true
+    numberOfAction match {
+      case 1 =>
+        buyerOrder.amountStock -= amountStock
+        candidateOrder.amountStock -= amountStock
+        true
+      case 2 =>
+        changeAndDeleteOrders(candidateOrder, amountStock, buyerOrder)
+        false
+      case 3 =>
+        changeAndDeleteOrders(buyerOrder, amountStock, candidateOrder)
+        true
+      case 4 =>
+        deleteTwoOrders(buyerOrder, candidateOrder)
+        false
+    }
   }
 
   def sellOperation(order: Order, buySellOrdersBuffer:mutable.Buffer[Order], seller:ClientWithOrdersBuffer): Boolean = {
+
     for(i <- buySellOrdersBuffer.indices) {
+
       theMainCounter += 1
+
       if(i >= buySellOrdersBuffer.size)
         return false
 
-      var candidateOrder = buySellOrdersBuffer(i)
+      val candidateOrder = buySellOrdersBuffer(i)
       if(!order.name.equals(candidateOrder.name) && !order.operation.equals(candidateOrder.operation) &&
           order.stockName.equals(candidateOrder.stockName) &&
           order.priceStock.compareTo(candidateOrder.priceStock) != 1) {
+
         var candidate:ClientWithOrdersBuffer = null
         for(j <- clientsWithOrdersBuffer.indices) {
           if(candidateOrder.name.equals(clientsWithOrdersBuffer(j).name))
             candidate = clientsWithOrdersBuffer(j)
         }
-        return switchWhensell(seller, order, candidate, candidateOrder)
+        return switchWhenSell(seller, order, candidate, candidateOrder)
       }
     }
     false
   }
 
-  def changeIfWantSellMore(seller:ClientWithOrdersBuffer, sellerOrder:Order, candidate:ClientWithOrdersBuffer,
-                           candidateOrder:Order, amountStock:Int): Boolean = {
+  def deleteZeroOrOneOrTwoOrdersWhenSell(seller:ClientWithOrdersBuffer, sellerOrder:Order, candidate:ClientWithOrdersBuffer,
+                                         candidateOrder:Order, amountStock:Int, numberOfAction:Int): Boolean = {
 
     seller.money += amountStock * candidateOrder.priceStock
     candidate.money -= amountStock * candidateOrder.priceStock
 
-    if(candidate.money < 0) {
-      println("<0MF")
-    }
     theMainCounter += 1
 
     changeAmountStock(seller, candidate, candidateOrder.stockName, amountStock)
 
-    changeAndDeleteOrders(sellerOrder, amountStock, candidateOrder)
-
-    true
-  }
-
-  def changeIfWantSellLess(seller:ClientWithOrdersBuffer, sellerOrder:Order, candidate:ClientWithOrdersBuffer,
-                           candidateOrder:Order, amountStock:Int): Boolean = {
-
-    seller.money += amountStock * candidateOrder.priceStock
-    candidate.money -= amountStock * candidateOrder.priceStock
-
-    if(candidate.money < 0) {
-      println("<0MF")
+    numberOfAction match {
+      case 1 =>
+        sellerOrder.amountStock -= amountStock
+        candidateOrder.amountStock -= amountStock
+        true
+      case 2 =>
+        changeAndDeleteOrders(candidateOrder, amountStock, sellerOrder)
+        false
+      case 3 =>
+        changeAndDeleteOrders(sellerOrder, amountStock, candidateOrder)
+        true
+      case 4 =>
+        deleteTwoOrders(sellerOrder, candidateOrder)
+        false
     }
-    theMainCounter += 1
-
-    changeAmountStock(seller, candidate, candidateOrder.stockName, candidateOrder.priceStock)
-
-    changeAndDeleteOrders(candidateOrder, amountStock, sellerOrder)
-
-    false
-  }
-
-  def changeWhenCantSellAll(seller:ClientWithOrdersBuffer, sellerOrder:Order,
-                           candidate:ClientWithOrdersBuffer, candidateOrder:Order, amountToSell:Int): Boolean = {
-
-    seller.money += amountToSell * candidateOrder.priceStock
-    candidate.money -= amountToSell * candidateOrder.priceStock
-
-    if(candidate.money < 0) {
-      println("<0MF")
-    }
-    theMainCounter += 1
-
-    changeAmountStock(seller, candidate, candidateOrder.stockName, amountToSell)
-
-    sellerOrder.amountStock -= amountToSell
-    candidateOrder.amountStock -= amountToSell
-
-    true
-  }
-
-  def sellWhenStockEqual(seller:ClientWithOrdersBuffer, sellerOrder:Order,
-                           candidate:ClientWithOrdersBuffer, candidateOrder:Order): Boolean = {
-
-    seller.money += candidateOrder.amountStock * candidateOrder.priceStock
-    candidate.money -= candidateOrder.amountStock * candidateOrder.priceStock
-
-    if(candidate.money < 0) {
-      println("<0MF")
-    }
-    theMainCounter += 1
-
-    changeAmountStock(seller, candidate, candidateOrder.stockName, candidateOrder.amountStock)
-
-    deleteTwoOrders(sellerOrder, candidateOrder)
-
-    false
   }
 
   def changeAmountStock(clientMinus:ClientWithOrdersBuffer, clientPlus:ClientWithOrdersBuffer,
                         stockName:Char, amountStock:Int): Unit = {
-    if(stockName == 'A') {
-      clientMinus.A -= amountStock
-      clientPlus.A += amountStock
-    }else if(stockName == 'B') {
-      clientMinus.B -= amountStock
-      clientPlus.B += amountStock
-    }else if(stockName == 'C') {
-      clientMinus.C -= amountStock
-      clientPlus.C += amountStock
-    }else {
-      clientMinus.D -= amountStock
-      clientPlus.D += amountStock
+
+    stockName match {
+      case 'A' =>
+        clientMinus.A -= amountStock
+        clientPlus.A += amountStock
+      case 'B' =>
+        clientMinus.B -= amountStock
+        clientPlus.B += amountStock
+      case 'C' =>
+        clientMinus.C -= amountStock
+        clientPlus.C += amountStock
+      case 'D' =>
+        clientMinus.D -= amountStock
+        clientPlus.D += amountStock
     }
   }
 
-  def switchWhenBuy(buyer:ClientWithOrdersBuffer, buyerOrder:Order,
-                    candidate:ClientWithOrdersBuffer, candidateOrder:Order): Boolean = {
+  def switchWhenBuy(buyer:ClientWithOrdersBuffer, buyerOrder:Order, candidate:ClientWithOrdersBuffer, candidateOrder:Order): Boolean = {
 
-    var amountWantBuy = buyerOrder.amountStock
-    var amountWantSell = candidateOrder.amountStock
+    val amountWantBuy = buyerOrder.amountStock
+    val amountWantSell = candidateOrder.amountStock
 
-    var amountCanBuy = buyer.money / candidateOrder.priceStock
-    var amountCanSell = findAmountStockToSell(candidate, candidateOrder)
+    val amountCanBuy = buyer.money / candidateOrder.priceStock
+    val amountCanSell = findAmountStockToSell(candidate, candidateOrder)
 
     if(amountWantBuy <= amountCanBuy && amountWantSell <= amountCanSell) {
       if(amountWantBuy == amountWantSell) {
-        //EqualBuy => return false
-        return buyWhenStockEqual(buyer, buyerOrder, candidate, candidateOrder)
+        return deleteZeroOrOneOrTwoOrdersWhenBuy(buyer, buyerOrder, candidate, candidateOrder, amountWantBuy, 4)
       }else if(amountWantBuy < amountWantSell) {
-        //wantBuyLess => false
-        return changeIfWantBuyLess(buyer, buyerOrder, candidate, candidateOrder, amountWantBuy)
+        return deleteZeroOrOneOrTwoOrdersWhenBuy(buyer, buyerOrder, candidate, candidateOrder, amountWantBuy, 2)
       }else if(amountWantBuy > amountWantSell){
-        //wantBuyMore => true
-        return changeIfWantBuyMore(buyer, buyerOrder, candidate, candidateOrder, amountWantSell)
+        return deleteZeroOrOneOrTwoOrdersWhenBuy(buyer, buyerOrder, candidate, candidateOrder, amountWantSell, 3)
       }
     }
 
     if(amountWantBuy > amountCanBuy && amountWantSell <= amountCanSell) {
       if(amountCanBuy == amountWantSell) {
-        //wantBuyMore => true
-        return changeIfWantBuyMore(buyer, buyerOrder, candidate, candidateOrder, amountWantBuy)
+        return deleteZeroOrOneOrTwoOrdersWhenBuy(buyer, buyerOrder, candidate, candidateOrder, amountWantBuy, 3)
       }else if(amountCanBuy < amountWantSell) {
-        //cantBuyAll => true
-        return changeWhenCantBuyAll(buyer, buyerOrder, candidate, candidateOrder, amountCanBuy)
+        return deleteZeroOrOneOrTwoOrdersWhenBuy(buyer, buyerOrder, candidate, candidateOrder, amountCanBuy, 1)
       }else if (amountCanBuy > amountWantSell) {
-        //wantBuyMore => true
-        return changeIfWantBuyMore(buyer, buyerOrder, candidate, candidateOrder, amountWantSell)
+        return deleteZeroOrOneOrTwoOrdersWhenBuy(buyer, buyerOrder, candidate, candidateOrder, amountWantSell, 3)
       }
     }
 
     if(amountWantBuy <= amountCanBuy && amountWantSell > amountCanSell) {
       if(amountWantBuy == amountCanSell) {
-        //wnatBuyLess => false
-        return changeIfWantBuyLess(buyer, buyerOrder, candidate, candidateOrder, amountWantBuy)
+        return deleteZeroOrOneOrTwoOrdersWhenBuy(buyer, buyerOrder, candidate, candidateOrder, amountWantBuy, 2)
       }else if(amountWantBuy < amountCanSell) {
-        //wantBuyLess => false
-        return changeIfWantBuyLess(buyer, buyerOrder, candidate, candidateOrder, amountWantBuy)
+        return deleteZeroOrOneOrTwoOrdersWhenBuy(buyer, buyerOrder, candidate, candidateOrder, amountWantBuy, 2)
       }else if(amountWantBuy > amountCanSell) {
-        //cantBuyAll => true
-        return changeWhenCantBuyAll(buyer, buyerOrder, candidate, candidateOrder, amountCanSell)
+        return deleteZeroOrOneOrTwoOrdersWhenBuy(buyer, buyerOrder, candidate, candidateOrder, amountCanSell, 1)
       }
     }
 
     if(amountWantBuy > amountCanBuy && amountWantSell > amountCanSell) {
       if(amountCanBuy == amountCanSell) {
-        //CantBuyAll => true
-        return changeWhenCantBuyAll(buyer, buyerOrder, candidate, candidateOrder, amountCanBuy)
+        return deleteZeroOrOneOrTwoOrdersWhenBuy(buyer, buyerOrder, candidate, candidateOrder, amountCanBuy, 1)
       }else if(amountCanBuy < amountCanSell) {
-        //CantBuyAll => true
-        return changeWhenCantBuyAll(buyer, buyerOrder, candidate, candidateOrder, amountCanBuy)
+        return deleteZeroOrOneOrTwoOrdersWhenBuy(buyer, buyerOrder, candidate, candidateOrder, amountCanBuy, 1)
       }else if(amountCanBuy > amountCanSell){
-        //CantBuyAll => true
-        return changeWhenCantBuyAll(buyer, buyerOrder, candidate, candidateOrder, amountCanSell)
+        return deleteZeroOrOneOrTwoOrdersWhenBuy(buyer, buyerOrder, candidate, candidateOrder, amountCanSell, 1)
       }
     }
     false
   }
 
   def findAmountStockToSell(client:ClientWithOrdersBuffer, clientOrder:Order): Int = {
-    var stockName = clientOrder.stockName
+
+    val stockName = clientOrder.stockName
     stockName match {
       case 'A' => client.A
       case 'B' => client.B
@@ -422,63 +331,51 @@ object Application extends App{
     }
   }
 
-  def switchWhensell(seller:ClientWithOrdersBuffer, sellerOrder:Order,
-                     candidate:ClientWithOrdersBuffer, candidateOrder:Order): Boolean = {
-    var amountWantBuy = candidateOrder.amountStock
-    var amountWantSell = sellerOrder.amountStock
+  def switchWhenSell(seller:ClientWithOrdersBuffer, sellerOrder:Order, candidate:ClientWithOrdersBuffer, candidateOrder:Order): Boolean = {
 
-    var amountCanBuy = candidate.money / candidateOrder.priceStock
-    var amountCanSell = findAmountStockToSell(seller, sellerOrder)
+    val amountWantBuy = candidateOrder.amountStock
+    val amountWantSell = sellerOrder.amountStock
+
+    val amountCanBuy = candidate.money / candidateOrder.priceStock
+    val amountCanSell = findAmountStockToSell(seller, sellerOrder)
 
     if(amountWantBuy <= amountCanBuy && amountWantSell <= amountCanSell) {
       if(amountWantBuy == amountWantSell) {
-        //EqualSell => return false
-        return sellWhenStockEqual(seller,sellerOrder,candidate,candidateOrder)
+        return deleteZeroOrOneOrTwoOrdersWhenSell(seller, sellerOrder, candidate, candidateOrder, amountWantBuy, 4)
       }else if(amountWantBuy < amountWantSell) {
-        //wantSellMore => true
-        return changeIfWantSellMore(seller, sellerOrder, candidate, candidateOrder, amountWantBuy)
+        return deleteZeroOrOneOrTwoOrdersWhenSell(seller, sellerOrder, candidate, candidateOrder, amountWantBuy, 3)
       }else if(amountWantBuy > amountWantSell){
-        //wantSellLess => false
-        return changeIfWantSellLess(seller,sellerOrder,candidate,candidateOrder, amountWantSell)
+        return deleteZeroOrOneOrTwoOrdersWhenSell(seller, sellerOrder, candidate, candidateOrder, amountWantSell, 2)
       }
     }
 
     if(amountWantBuy > amountCanBuy && amountWantSell <= amountCanSell) {
       if(amountCanBuy == amountWantSell) {
-        //wantSellLess => false
-        return changeIfWantSellLess(seller, sellerOrder, candidate, candidateOrder, amountCanBuy)
+        return deleteZeroOrOneOrTwoOrdersWhenSell(seller, sellerOrder, candidate, candidateOrder, amountCanBuy, 2)
       }else if(amountCanBuy < amountWantSell) {
-        //cantSellAll => true
-        return changeWhenCantSellAll(seller,sellerOrder,candidate,candidateOrder,amountCanBuy)
+        return deleteZeroOrOneOrTwoOrdersWhenSell(seller, sellerOrder, candidate, candidateOrder, amountCanBuy, 1)
       }else if (amountCanBuy > amountWantSell) {
-        //wantSellLess => false
-        return changeIfWantSellLess(seller, sellerOrder, candidate, candidateOrder, amountWantSell)
+        return deleteZeroOrOneOrTwoOrdersWhenSell(seller, sellerOrder, candidate, candidateOrder, amountWantSell, 2)
       }
     }
 
     if(amountWantBuy <= amountCanBuy && amountWantSell > amountCanSell) {
       if(amountWantBuy == amountCanSell) {
-        //wantSellMore => true
-        return changeIfWantSellMore(seller, sellerOrder, candidate, candidateOrder, amountWantBuy)
+        return deleteZeroOrOneOrTwoOrdersWhenSell(seller, sellerOrder, candidate, candidateOrder, amountWantBuy, 3)
       }else if(amountWantBuy < amountCanSell) {
-        //wantSellMore => true
-        return changeIfWantSellMore(seller, sellerOrder, candidate, candidateOrder, amountWantBuy)
+        return deleteZeroOrOneOrTwoOrdersWhenSell(seller, sellerOrder, candidate, candidateOrder, amountWantBuy, 3)
       }else if(amountWantBuy > amountCanSell) {
-        //cantSellAll => true
-        return changeWhenCantSellAll(seller, sellerOrder, candidate, candidateOrder, amountCanSell)
+        return deleteZeroOrOneOrTwoOrdersWhenSell(seller, sellerOrder, candidate, candidateOrder, amountCanSell, 1)
       }
     }
 
     if(amountWantBuy > amountCanBuy && amountWantSell > amountCanSell) {
       if(amountCanBuy == amountCanSell) {
-        //CantSellAll => true
-        return changeWhenCantSellAll(seller, sellerOrder, candidate, candidateOrder, amountCanBuy)
+        return deleteZeroOrOneOrTwoOrdersWhenSell(seller, sellerOrder, candidate, candidateOrder, amountCanBuy, 1)
       }else if(amountCanBuy < amountCanSell) {
-        //CantSellAll => true
-        return changeWhenCantSellAll(seller, sellerOrder, candidate, candidateOrder, amountCanBuy)
+        return deleteZeroOrOneOrTwoOrdersWhenSell(seller, sellerOrder, candidate, candidateOrder, amountCanBuy, 1)
       }else if(amountCanBuy > amountCanSell){
-        //CantSellAll => true
-        return changeWhenCantSellAll(seller, sellerOrder, candidate, candidateOrder, amountCanSell)
+        return deleteZeroOrOneOrTwoOrdersWhenSell(seller, sellerOrder, candidate, candidateOrder, amountCanSell, 1)
       }
     }
     false

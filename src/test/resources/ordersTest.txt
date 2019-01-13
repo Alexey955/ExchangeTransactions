@@ -1,0 +1,11 @@
+C1	b	C	15	4
+C2	s	C	14	5
+C3	s	C	13	2
+C4	b	B	6	4
+C5	b	D	5	4
+C6	b	D	4	5
+C7	b	A	11	1
+C8	b	C	15	1
+C9	b	B	7	3
+C1	s	A	9	1
+C2	s	D	3	2

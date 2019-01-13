@@ -1,9 +1,72 @@
-package main.classes
+package classes
 
 import scala.collection.mutable
 
-class Client(val name:String, var money:Int, var A:Int, var B:Int, var C:Int, var D:Int) {
+class Client(private val name:String, private var money:Int, private var A:Int, private var B:Int, private var C:Int, private var D:Int) {
 
+  def getName:String = {
+    name
+  }
+
+  def getMoney:Int = {
+    money
+  }
+
+  def getA:Int = {
+    A
+  }
+
+  def getB:Int = {
+    B
+  }
+
+  def getC:Int = {
+    C
+  }
+
+  def getD:Int = {
+    D
+  }
+
+  def plusMoney(amount:Int): Unit = {
+    money += amount
+  }
+
+  def minusMoney(amount:Int): Unit = {
+    money -= amount
+  }
+
+  def plusA(amount:Int): Unit = {
+    A += amount
+  }
+
+  def minusA(amount:Int): Unit = {
+    A -= amount
+  }
+
+  def plusB(amount:Int): Unit = {
+    B += amount
+  }
+
+  def minusB(amount:Int): Unit = {
+    B += amount
+  }
+
+  def plusC(amount:Int): Unit = {
+    C += amount
+  }
+
+  def minusC(amount:Int): Unit = {
+    C += amount
+  }
+
+  def plusD(amount:Int): Unit = {
+    D += amount
+  }
+
+  def minusD(amount:Int): Unit = {
+    D += amount
+  }
 }
 
 object Client{

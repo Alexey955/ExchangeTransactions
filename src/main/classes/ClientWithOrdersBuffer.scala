@@ -1,9 +1,10 @@
-package main.classes
+package classes
 
 import scala.collection.mutable
 
-class ClientWithOrdersBuffer(var client: Client, var ownOrdersBuffer:mutable.Buffer[Order]) extends Client(client.name,
-  client.money, client.A, client.B, client.C, client.D) {
+class ClientWithOrdersBuffer(client: Client, var ownOrdersBuffer:mutable.Buffer[Order]) extends Client(client.getName,
+  client.getMoney, client.getA, client.getB, client.getC, client.getD) {
+
 
 }
 
@@ -15,8 +16,8 @@ object ClientWithOrdersBuffer{
     val clientsWithOrdersBuffer:mutable.Buffer[ClientWithOrdersBuffer] = mutable.Buffer()
 
     for(i <- clientsBuffer.indices) {
-      var ownOrdersBuffer = createOwnOrderBuffer(clientsBuffer(i), ordersBuffer)
-      var clientsWithOrders = new ClientWithOrdersBuffer(clientsBuffer(i), ownOrdersBuffer)
+      val ownOrdersBuffer = createOwnOrderBuffer(clientsBuffer(i), ordersBuffer)
+      val clientsWithOrders = new ClientWithOrdersBuffer(clientsBuffer(i), ownOrdersBuffer)
 
       clientsWithOrdersBuffer.append(clientsWithOrders)
     }
@@ -28,7 +29,7 @@ object ClientWithOrdersBuffer{
     val ownOrdersBuffer:mutable.Buffer[Order] = mutable.Buffer()
 
     for(i <- ordersBuffer.indices) {
-      if(client.name.equals(ordersBuffer(i).name))
+      if(client.getName.equals(ordersBuffer(i).getName))
         ownOrdersBuffer.append(ordersBuffer(i))
     }
     ownOrdersBuffer
